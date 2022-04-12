@@ -83,6 +83,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	form := forms.New(r.PostForm)
 
+	// form validations
 	form.Required("first_name", "last_name", "email", "phone")
 	form.MinLength("first_name", 3, r)
 	form.IsEmail("email")
@@ -96,7 +97,27 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	// adding reservation data into session
+	m.App.Session.Put(r.Context(), "reservation", reservation)
 
+	// rediretion to reservation-summary page
+	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)
+}
+
+// ReservationSummary renders the reservation summary page with data
+func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		m.App.Session.Put(r.Context(), "errorMessage", "Can't get reservation from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservation"] = reservation
+	render.RenderTemplate(w, r, "reservation-summary.page.html", &models.TemplateData{
+		Data: data,
+	})
 }
 
 // SearchAvailability renders the search-availability page

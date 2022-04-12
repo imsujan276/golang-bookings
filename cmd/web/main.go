@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/imsujan276/golang-bookings/internal/config"
 	"github.com/imsujan276/golang-bookings/internal/handlers"
+	"github.com/imsujan276/golang-bookings/internal/models"
 	"github.com/imsujan276/golang-bookings/internal/render"
 
 	"github.com/alexedwards/scs/v2"
@@ -19,6 +21,9 @@ var app config.AppConfig
 var session *scs.SessionManager
 
 func main() {
+
+	// define the type of data that can be stored into session
+	gob.Register(models.Reservation{})
 
 	// change this to true when in production
 	app.InProduction = false
@@ -34,6 +39,7 @@ func main() {
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
+		log.Println(err)
 		log.Fatal("Can not create template cache")
 	}
 	app.TemplateCache = tc

@@ -27,6 +27,7 @@ func routes(app *config.AppConfig) http.Handler {
 
 	r.Get("/make-reservation", handlers.Repo.Reservation)
 	r.Post("/make-reservation", handlers.Repo.PostReservation)
+	r.Get("/reservation-summary", handlers.Repo.ReservationSummary)
 
 	r.Get("/search-availability", handlers.Repo.SearchAvailability)
 	r.Post("/search-availability", handlers.Repo.PostSearchAvailability)
