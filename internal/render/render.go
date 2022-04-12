@@ -7,8 +7,9 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/imsujan276/golang-bookings/pkg/config"
-	"github.com/imsujan276/golang-bookings/pkg/models"
+	"github.com/imsujan276/golang-bookings/internal/config"
+	"github.com/imsujan276/golang-bookings/internal/models"
+	"github.com/justinas/nosurf"
 )
 
 //
@@ -21,13 +22,13 @@ func NewTemplates(a *config.AppConfig) {
 	app = a
 }
 
-func AddDefaultData(tempData *models.TemplateData) *models.TemplateData {
-
+func AddDefaultData(tempData *models.TemplateData, r *http.Request) *models.TemplateData {
+	tempData.CSRFToken = nosurf.Token(r)
 	return tempData
 }
 
 // RenderTemplate renders the static templates form templates directory
-func RenderTemplate(w http.ResponseWriter, tmpl string, tempData *models.TemplateData) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, tempData *models.TemplateData) {
 	var tc map[string]*template.Template
 
 	if app.UseCache {
@@ -44,8 +45,7 @@ func RenderTemplate(w http.ResponseWriter, tmpl string, tempData *models.Templat
 
 	buf := new(bytes.Buffer)
 	// take the template, execute it, dont pass data and store it in buf variable
-
-	tempData = AddDefaultData(tempData)
+	tempData = AddDefaultData(tempData, r)
 	temp.Execute(buf, tempData)
 
 	_, err := buf.WriteTo(w)
