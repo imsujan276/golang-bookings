@@ -3,11 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/imsujan276/golang-bookings/internal/config"
 	"github.com/imsujan276/golang-bookings/internal/forms"
+	"github.com/imsujan276/golang-bookings/internal/helpers"
 	"github.com/imsujan276/golang-bookings/internal/models"
 	"github.com/imsujan276/golang-bookings/internal/render"
 )
@@ -34,24 +34,12 @@ func NewHandlers(r *Repository) {
 
 // Home is the home page handler
 func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
-	// setting remote IP address in the session
-	remoteIP := r.RemoteAddr
-	m.App.Session.Put(r.Context(), "remoteIP", remoteIP)
-
 	render.RenderTemplate(w, r, "home.page.html", &models.TemplateData{})
 }
 
 // About is the about page handler
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
-	var stringMap = make(map[string]string)
-	stringMap["test"] = "hello"
-
-	remoteIP := m.App.Session.GetString(r.Context(), "remoteIP")
-	stringMap["remoteIP"] = remoteIP
-
-	render.RenderTemplate(w, r, "about.page.html", &models.TemplateData{
-		StringMap: stringMap,
-	})
+	render.RenderTemplate(w, r, "about.page.html", &models.TemplateData{})
 }
 
 // Reservation renders the make reservation page and display form
@@ -70,7 +58,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -108,11 +96,12 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		m.App.Session.Put(r.Context(), "errorMessage", "Can't get reservation from session")
+		m.App.Session.Put(r.Context(), "error", "Can't get reservation from session")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-
+	// remove reservation from session
+	m.App.Session.Remove(r.Context(), "reservation")
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
 	render.RenderTemplate(w, r, "reservation-summary.page.html", &models.TemplateData{
@@ -129,7 +118,6 @@ func (m *Repository) SearchAvailability(w http.ResponseWriter, r *http.Request) 
 func (m *Repository) PostSearchAvailability(w http.ResponseWriter, r *http.Request) {
 	start := r.Form.Get("start")
 	end := r.Form.Get("end")
-
 	w.Write([]byte(fmt.Sprintf("Start date is %s and end date is %s", start, end)))
 }
 
@@ -146,7 +134,8 @@ func (m *Repository) JsonSearchAvailability(w http.ResponseWriter, r *http.Reque
 	}
 	out, err := json.MarshalIndent(resp, "", "  ")
 	if err != nil {
-		m.App.InfoLog.Println(err)
+		helpers.ServerError(w, err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)

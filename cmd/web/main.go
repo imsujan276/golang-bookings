@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/imsujan276/golang-bookings/internal/config"
 	"github.com/imsujan276/golang-bookings/internal/handlers"
+	"github.com/imsujan276/golang-bookings/internal/helpers"
 	"github.com/imsujan276/golang-bookings/internal/models"
 	"github.com/imsujan276/golang-bookings/internal/render"
 
@@ -27,6 +29,9 @@ func main() {
 
 	// change this to true when in production
 	app.InProduction = false
+
+	app.InfoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	app.ErrorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	session = scs.New()
 	// session lasts for 24 hours
@@ -47,8 +52,8 @@ func main() {
 
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
-
 	render.NewTemplates(&app)
+	helpers.NewHelpers(&app)
 
 	fmt.Println("Serving application on port", portNumber)
 	serve := &http.Server{

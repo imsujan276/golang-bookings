@@ -23,10 +23,6 @@
                 border-color: #6c757d;
             }
 
-            p {
-
-            }
-
             .paraClass {
                 font-size: 3em;
             }
@@ -153,11 +149,14 @@
             })
         }
 
-        {{with .ErrorMessage}}
+        {{with .Error}}
             notify("{{.}}", "error")
         {{end}}
-        {{with .FlashMessage}}
+        {{with .Flash}}
             notify("{{.}}", "success")
+        {{end}}
+        {{with .Warning}}
+            notify("{{.}}", "warning")
         {{end}}
 
         function Prompt() {
