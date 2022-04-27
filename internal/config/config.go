@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/imsujan276/golang-bookings/internal/models"
 )
 
 // AppConfig holds the application config i.e. global
@@ -15,4 +16,5 @@ type AppConfig struct {
 	ErrorLog      *log.Logger
 	InProduction  bool
 	Session       *scs.SessionManager
+	MailChannel   chan models.MailData
 }

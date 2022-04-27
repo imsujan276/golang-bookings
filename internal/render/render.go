@@ -17,8 +17,8 @@ var functions = template.FuncMap{}
 
 var app *config.AppConfig
 
-// NewTemplates sets the config for the template package
-func NewTemplates(a *config.AppConfig) {
+// NewRenderer sets the config for the template package
+func NewRenderer(a *config.AppConfig) {
 	app = a
 }
 
@@ -27,11 +27,14 @@ func AddDefaultData(tempData *models.TemplateData, r *http.Request) *models.Temp
 	tempData.Warning = app.Session.PopString(r.Context(), "warning")
 	tempData.Error = app.Session.PopString(r.Context(), "error")
 	tempData.CSRFToken = nosurf.Token(r)
+	if app.Session.Exists(r.Context(), "user_id") {
+		tempData.IsAuthenticated = 1
+	}
 	return tempData
 }
 
-// RenderTemplate renders the static templates form templates directory
-func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, tempData *models.TemplateData) {
+// Template renders the static templates form templates directory
+func Template(w http.ResponseWriter, r *http.Request, tmpl string, tempData *models.TemplateData) {
 	var tc map[string]*template.Template
 
 	if app.UseCache {
